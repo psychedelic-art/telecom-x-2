@@ -46,7 +46,7 @@ Continuación del análisis exploratorio (Parte 1). En esta fase se toman los da
 El enfoque incluye:
 - Encoding de variables categóricas y estandarización.
 - Análisis de correlación para selección de variables.
-- Balanceo de clases con **SMOTE** para abordar el desbalance (~78% Stayed / ~22% Churned).
+- Balanceo de clases con **SMOTE** para abordar el desbalance (~74% Stayed / ~26% Churned).
 - Entrenamiento y evaluación de **Regresión Logística** y **Random Forest**.
 - Análisis de importancia de variables y coeficientes.
 
@@ -75,7 +75,7 @@ El enfoque incluye:
 telecom-x-2/
 │
 ├── Parte_2_TelecomX_LATAM.ipynb   # Notebook con el pipeline completo
-├── df_final.csv                    # Dataset limpio (de Parte 1)
+├── telecomx_clean.csv              # Dataset limpio (exportado de Parte 1)
 └── README.md
 ```
 
@@ -111,13 +111,13 @@ jupyter notebook Parte_2_TelecomX_LATAM.ipynb
 - Estandarización con `StandardScaler`.
 
 ### 2. Correlación y selección
-- Análisis de correlación de Pearson contra `Churn`.
+- Correlación de Pearson contra `Churn`.
 - Box plots de las variables más correlacionadas (`tenure`, `Charges_Monthly`, `Charges_Total`).
 
 ### 3. Modelado
 - Split **70/30** estratificado.
 - Balanceo con **SMOTE** (clase minoritaria igualada a la mayoritaria).
-- Modelos: Regresión Logística y Random Forest (con `max_depth=10`, `min_samples_leaf=5`).
+- Modelos: Regresión Logística y Random Forest (`max_depth=10`, `min_samples_leaf=5`).
 
 ### 4. Evaluación
 - Classification report, matrices de confusión y ROC-AUC.
@@ -132,26 +132,25 @@ jupyter notebook Parte_2_TelecomX_LATAM.ipynb
 
 | Métrica | Regresión Logística | Random Forest |
 |---------|:-------------------:|:-------------:|
-| Train accuracy | ~72% | ~82% |
-| Test accuracy | ~68% | ~68% |
-| Recall (Churned) | ~73% | ~73% |
-| ROC-AUC | ~0.77 | ~0.76 |
+| Train accuracy | 78.24% | 87.80% |
+| Test accuracy | 74.54% | 76.67% |
+| Recall (Churned) | **80%** | 72% |
+| ROC-AUC | 0.8399 | 0.8386 |
 
-**Modelo seleccionado: Regresión Logística** — rendimiento equivalente al Random Forest en test, pero con mayor interpretabilidad y sin riesgo de sobreajuste.
+**Modelo seleccionado: Regresión Logística** — aunque el Random Forest tiene un accuracy ligeramente superior en test, LR alcanza un recall del **80%** para la clase Churned (frente al 72% de RF), lo que permite identificar a **8 de cada 10 clientes en riesgo de abandono**. Además, la brecha train/test de solo ~4% confirma una generalización sólida sin sobreajuste.
 
 ### Variables más influyentes
 
 | Variable | Efecto |
 |----------|--------|
-| `Contract_Month-to-month` | Mayor aumento del churn |
-| `tenure` | A mayor antigüedad, menor abandono |
-| `Contract_Two year` | Mayor reducción del churn |
-| `Charges_Monthly` | Cargos altos asociados a más abandono |
-| `PaymentMethod_Electronic check` | Aumenta el riesgo |
+| `Contract_Month-to-month` | Fuerte aumento del churn — sin compromiso contractual, el riesgo es máximo |
+| `tenure` | Fuerte reducción — la antigüedad genera lealtad, los primeros meses son críticos |
+| `Contract_Two year` | Fuerte reducción — el compromiso a largo plazo es la mayor barrera de salida |
+| `Charges_Monthly` | Aumento — cargos altos correlacionan con mayor rotación |
 
 ### Impacto de SMOTE
 
-Sin balanceo el recall para Churned era ~52% (la mitad de los abandonos pasaban desapercibidos). Con SMOTE sube a ~73%, lo cual es más útil para campañas de retención donde el costo de no detectar un abandono supera al de una falsa alarma.
+El balanceo con SMOTE permitió que el modelo dejara de sesgarse hacia la clase mayoritaria. El recall para Churned subió hasta el **80%**, lo que significa que el modelo detecta eficazmente a 8 de cada 10 clientes que van a abandonar — una métrica crítica para el éxito de campañas de retención.
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
@@ -159,11 +158,10 @@ Sin balanceo el recall para Churned era ~52% (la mitad de los abandonos pasaban 
 
 ## Recomendaciones
 
-1. **Incentivar contratos a largo plazo** — es la variable con mayor peso en ambos modelos.
-2. **Retención temprana** — los primeros meses son los de mayor riesgo.
-3. **Revisar tarifas de fibra óptica** — cargos altos se asocian con abandono.
-4. **Migrar pagos con cheque electrónico** — incentivar métodos automáticos.
-5. **Integrar el modelo en operaciones** — alertas tempranas para intervención proactiva.
+1. **Migración contractual** — Incentivar el paso de contratos mensuales a anuales mediante descuentos.
+2. **Onboarding temprano** — Reforzar la atención en los primeros 6 meses de antigüedad.
+3. **Optimización de pagos** — Promover el cambio de cheque electrónico a métodos automáticos.
+4. **Monitoreo proactivo** — Desplegar el modelo para generar un score de riesgo semanal y contactar preventivamente a los clientes identificados dentro del 80% de acierto en churn.
 
 <p align="right">(<a href="#readme-top">volver arriba</a>)</p>
 
